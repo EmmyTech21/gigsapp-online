@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.hero-sec {
+  background-image: url('./images/hero-sec.png');
+  background-repeat: no-repeat;
+  background-position: center;
+}
