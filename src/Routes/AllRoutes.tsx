@@ -21,7 +21,7 @@ const AllRoutes = () => {
 
       {/* Protected Routes */}
       <Route
-        path="/dashboard"
+        path="/dashboard/*"
         element={
           <PrivateRoute>
             <DashboardPage />

@@ -1,13 +1,11 @@
-import React from 'react';
-
 interface ReviewProps {
   formData: {
-    taskTitle: string;
-    category: string;
+    title: string;
     location: string;
     description: string;
     budget: string;
     date: string;
+    image: File | null;
   };
 }
 
@@ -16,10 +14,7 @@ const Review: React.FC<ReviewProps> = ({ formData }) => {
     <div>
       <h2 className="text-xl font-bold mb-4">Review</h2>
       <div className="mb-4">
-        <strong>Task Title:</strong> {formData.taskTitle}
-      </div>
-      <div className="mb-4">
-        <strong>Category:</strong> {formData.category}
+        <strong>Task Title:</strong> {formData.title}
       </div>
       <div className="mb-4">
         <strong>Location:</strong> {formData.location}
@@ -32,6 +27,9 @@ const Review: React.FC<ReviewProps> = ({ formData }) => {
       </div>
       <div className="mb-4">
         <strong>Date:</strong> {formData.date}
+      </div>
+      <div className="mb-4">
+        <strong>Image:</strong> {formData.image && <img src={URL.createObjectURL(formData.image)} alt="Task" />}
       </div>
     </div>
   );

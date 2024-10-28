@@ -1,8 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+axios.defaults.baseURL = 'http://localhost:3000/api'; 
+
 interface Task {
-  id: number;
+  id: string;
   title: string;
   description: string;
   location: string;
@@ -10,7 +12,9 @@ interface Task {
   date: string;
   status: 'Completed' | 'Pending';
   bids: number;
+  image?: string;  
 }
+
 
 interface TasksState {
   tasks: Task[];
@@ -26,48 +30,93 @@ const initialState: TasksState = {
   searchResults: [],
 };
 
-export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async (userId: string, thunkAPI) => {
+// Fetch tasks for logged-in user
+export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async (_, thunkAPI) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get(`/api/tasks/${userId}`, {
+    if (!token) {
+      throw new Error('User is not authenticated');
+    }
+
+    const response = await axios.get('/tasks/tasks', {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data.tasks;
   } catch (error: any) {
-    return thunkAPI.rejectWithValue(error.response.data || 'Something went wrong');
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to fetch tasks');
   }
 });
 
-export const postTask = createAsyncThunk('tasks/postTask', async (taskData: Task, thunkAPI) => {
+interface PostTaskData {
+  title: string;
+  description: string;
+  location: string;
+  budget: string;
+  date: string;
+  image?: string;  
+}
+
+
+
+export const postTask = createAsyncThunk('tasks/postTask', async (taskData: PostTaskData, thunkAPI) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.post('/api/tasks', taskData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data.task;
+    console.log("Token:", token); 
+
+    if (!taskData.title || !taskData.description || !taskData.location || !taskData.budget || !taskData.date) {
+      return thunkAPI.rejectWithValue('All fields are required');
+    }
+
+    // Prepare FormData
+    const formData = new FormData();
+    formData.append('title', taskData.title);
+    formData.append('description', taskData.description);
+    formData.append('location', taskData.location);
+    formData.append('budget', taskData.budget);
+    formData.append('date', taskData.date);
+
+    // Check if an image file is provided
+    if (taskData.image) {
+      formData.append('image', taskData.image);  // `taskData.image` should be a File object
+    }
+
+    const response = await axios.post('/tasks/tasks', formData, {
+    headers: { 
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'multipart/form-data'  
+  }
+});
+return response.data.task;  
   } catch (error: any) {
-    return thunkAPI.rejectWithValue(error.response.data || 'Failed to post task');
+    console.error("Error posting task:", error); // This logs the error for debugging
+    return thunkAPI.rejectWithValue(error.response?.data?.error || 'Failed to post task');
   }
 });
 
+// Search tasks by title
 export const searchTasks = createAsyncThunk('tasks/searchTasks', async (query: string, thunkAPI) => {
   try {
-    const response = await axios.get(`/api/tasks/search?query=${query}`);
+    const response = await axios.get(`/tasks/search?query=${query}`);
     return response.data.tasks;
   } catch (error: any) {
-    return thunkAPI.rejectWithValue(error.response.data || 'Search failed');
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Search failed');
   }
 });
 
-export const addBid = createAsyncThunk('tasks/addBid', async ({ taskId, userId }: { taskId: number; userId: string }, thunkAPI) => {
+// Add a bid to a task
+export const addBid = createAsyncThunk('tasks/addBid', async ({ taskId }: { taskId: string }, thunkAPI) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.post(`/api/task/${taskId}/bid`, null, {
+    if (!token) {
+      return thunkAPI.rejectWithValue('User is not authenticated');
+    }
+
+    const response = await axios.post(`/tasks/task/${taskId}/bid`, null, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data.task;
   } catch (error: any) {
-    return thunkAPI.rejectWithValue(error.response.data || 'Failed to add bid');
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to add bid');
   }
 });
 
@@ -93,10 +142,10 @@ const tasksSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(postTask.fulfilled, (state, action) => {
-        state.loading = false;
-        state.tasks.push(action.payload);
-      })
+     .addCase(postTask.fulfilled, (state, action) => {
+  state.loading = false;
+  state.tasks.push(action.payload); // Make sure action.payload is a task object
+})
       .addCase(postTask.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -117,9 +166,8 @@ const tasksSlice = createSlice({
       })
       .addCase(addBid.fulfilled, (state, action) => {
         state.loading = false;
-        // Update the task with the new bid count
         const updatedTask = action.payload;
-        state.tasks = state.tasks.map(task =>
+        state.tasks = state.tasks.map((task) =>
           task.id === updatedTask.id ? updatedTask : task
         );
       })
@@ -132,5 +180,8 @@ const tasksSlice = createSlice({
 
 export default tasksSlice.reducer;
 
+// Selectors
 export const selectTasks = (state: { tasks: TasksState }) => state.tasks.tasks;
 export const selectSearchResults = (state: { tasks: TasksState }) => state.tasks.searchResults;
+export const selectLoading = (state: { tasks: TasksState }) => state.tasks.loading;
+export const selectError = (state: { tasks: TasksState }) => state.tasks.error;

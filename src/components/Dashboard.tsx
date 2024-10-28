@@ -11,26 +11,24 @@ const Dashboard: React.FC = () => {
   const dispatch = useDispatch();
   const { tasks = [], loading, error } = useSelector((state: RootState) => selectTasks(state) || {});
   const { user } = useSelector((state: RootState) => selectAuth(state) || {});
-
-   const [currentDate, setCurrentDate] = useState<string>("");
+  const [currentDate, setCurrentDate] = useState<string>("");
+  const [filter, setFilter] = useState({ title: '', status: 'All' });
 
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchTasks(user.id));
     }
 
-    // const interval = setInterval(() => {
-    //   const now = new Date();
-    //   setCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-    // }, 60000);
-
-     const now = new Date();
+    const now = new Date();
     setCurrentDate(now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }));
   }, [dispatch, user]);
 
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  const filteredTasks = tasks.filter(task => {
+    return (
+      (filter.status === 'All' || task.status === filter.status) &&
+      (task.title.toLowerCase().includes(filter.title.toLowerCase()))
+    );
+  });
 
   const chartData = {
     labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
@@ -56,12 +54,13 @@ const Dashboard: React.FC = () => {
     <div className="p-6">
       <Header/>
       <h1 className="text-xl font-semibold">{currentDate}</h1>
-        <h1 className="text-2xl font-bold">
-          Good morning, {user?.firstName} {user?.lastName} 👤 🌞
-        </h1>
-      <div className="flex gap-4 my-4">
-        {/* Stats Cards */}
-        <div className="p-4 bg-white shadow-md rounded flex flex-col items-center text-center">
+      <h1 className="text-2xl font-bold">
+        Good morning, {user?.firstName} {user?.lastName} 👤 🌞
+      </h1>
+
+      {/* Task Stats and Chart */}
+      <div className="flex gap-4 my-4 h-32">
+        <div className="p-4 bg-white shadow-md h rounded flex flex-col items-center text-center">
           <div className="text-blue-500 text-2xl">🔧</div>
           <div className="text-lg font-semibold">Active Tasks</div>
           <div>{tasks?.filter(task => task.status !== 'Completed').length || 0}</div>
@@ -92,6 +91,29 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Filter Section (Now below the chart) */}
+      <div className="flex gap-4 my-4 mt-64">
+        <input
+          type="text"
+          placeholder="Search by Title"
+          value={filter.title}
+          onChange={e => setFilter({ ...filter, title: e.target.value })}
+          className="border rounded p-2"
+        />
+        <select
+          value={filter.status}
+          onChange={e => setFilter({ ...filter, status: e.target.value })}
+          className="border rounded p-2"
+        >
+          <option value="All">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="Completed">Completed</option>
+          <option value="Live">Live</option>
+        </select>
+      </div>
+
+      {/* Tasks Table */}
       <table className="min-w-full mt-6 bg-white rounded shadow-md">
         <thead>
           <tr>
@@ -103,7 +125,7 @@ const Dashboard: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {tasks?.map(task => (
+          {filteredTasks.map(task => (
             <tr key={task.id}>
               <td className="p-2">{task.title}</td>
               <td className="p-2">{task.category}</td>

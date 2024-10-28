@@ -1,29 +1,50 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, ChangeEvent } from 'react';
+import { useAppDispatch } from '../app/hooks';
 import { FaShoppingCart, FaHome, FaTruck, FaMapMarkerAlt, FaHandshake } from 'react-icons/fa';
-import { postTask } from '../features/tasks/tasksSlice'; 
+import { postTask } from '../features/tasks/tasksSlice';
 import Details from '../Layout/Details';
 import TaskOverview from './TaskOverview';
 import DocumentUpload from './DocumentUpload';
 import SuccessPopup from './SuccessPopup';
-import { AppDispatch } from '../app/store'; 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import Review from './Review';
 
-
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; 
 
 const PostTask: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     location: '',
     budget: '',
     date: '',
+    image: null as File | null,
   });
+
   const [step, setStep] = useState(1);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const updateFormData = (newData: Partial<typeof formData>) => {
-    setFormData({ ...formData, ...newData });
+    setFormData(prev => ({ ...prev, ...newData }));
+  };
+
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      if (!file.type.startsWith('image/')) {
+        setErrorMessage('Invalid file type. Please upload an image.');
+        return;
+      }
+      if (file.size > MAX_IMAGE_SIZE) {
+        setErrorMessage('Image size exceeds 5MB. Please upload a smaller image.');
+        return;
+      }
+      updateFormData({ image: file });
+      setErrorMessage(''); 
+    }
   };
 
   const handleProceed = () => {
@@ -34,16 +55,39 @@ const PostTask: React.FC = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  const handlePostTask = () => {
-    dispatch(postTask(formData));
-    setStep(4); // Navigate to success step after posting the task
-  };
+ const handlePostTask = async () => {
+  // Validation
+  if (!formData.title || !formData.description || !formData.location || !formData.budget || !formData.date) {
+    setErrorMessage('All fields are required. Please complete the form.');
+    return;
+  }
+
+  const taskData = new FormData();
+  taskData.append('title', formData.title);
+  taskData.append('description', formData.description);
+  taskData.append('location', formData.location);
+  taskData.append('budget', formData.budget);
+  taskData.append('date', formData.date);
+  if (formData.image) {
+    taskData.append('image', formData.image);
+  }
+
+  try {
+    const result = await dispatch(postTask(taskData)).unwrap();
+    if (result) {
+      setStep(5); 
+    }
+  } catch (error) {
+    setErrorMessage('Failed to post task. Please try again later.');
+    console.error('Error in postTask:', error); 
+  }
+};
+
 
   const handleReturnToDashboard = () => {
-    console.log("Returning to Dashboard");
+    navigate('/dashboard');
   };
 
-  // Calculate progress percentage based on the current step
   const progressPercentage = (step / 4) * 100;
 
   return (
@@ -61,7 +105,7 @@ const PostTask: React.FC = () => {
         <div className="w-full md:w-2/3 p-4 grid grid-cols-2 gap-4">
           <div className="flex flex-col items-center bg-blue-50 p-4 rounded-lg shadow hover:shadow-lg transition duration-300 h-48">
             <FaShoppingCart className="text-4xl text-blue-500 mb-2" />
-            <Link to="post-task"><p className="text-center font-semibold">Errands & Shopping</p></Link> 
+            <Link to="post-task"><p className="text-center font-semibold">Errands & Shopping</p></Link>
           </div>
           <div className="flex flex-col items-center bg-blue-50 p-4 rounded-lg shadow hover:shadow-lg transition duration-300 h-48">
             <FaHome className="text-4xl text-blue-500 mb-2" />
@@ -105,13 +149,22 @@ const PostTask: React.FC = () => {
         </div>
       </div>
 
+      {/* Error Message */}
+      {errorMessage && <div className="text-red-500 text-center my-4">{errorMessage}</div>}
+
       {/* Conditional Rendering of Steps */}
       <div className="mt-6">
         {step === 1 && <Details formData={formData} updateFormData={updateFormData} onProceed={handleProceed} />}
+        {step === 2 && (
+          <div>
+            <DocumentUpload onBack={handleBack} onProceed={handleProceed} />
+            <input type="file" onChange={handleImageChange} />
+          </div>
+        )}
+        {step === 3 && <TaskOverview formData={formData} onProceed={handleProceed} onBack={handleBack} />}
+        {step === 4 && <Review formData={formData} />}
 
-        {step === 2 && <TaskOverview formData={formData} onProceed={handleProceed} onBack={handleBack} />}
-        {step === 3 && <DocumentUpload onBack={handleBack} onProceed={handleProceed} />} {/* New Step 3 Component */}
-        {step === 4 && <SuccessPopup onReturn={handleReturnToDashboard} />}
+        {step === 5 && <SuccessPopup onReturn={handleReturnToDashboard} />}
       </div>
 
       {step === 4 && (
@@ -119,7 +172,7 @@ const PostTask: React.FC = () => {
           onClick={handlePostTask}
           className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
         >
-          Post Task
+          Confirm & Post Task
         </button>
       )}
     </div>
