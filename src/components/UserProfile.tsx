@@ -1,31 +1,25 @@
 import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { fetchUser } from '../features/auth/authSlice';
-import { RootState } from '../app/store';
+import { RootState, useAppDispatch } from '../app/store';
 
 const UserProfile: React.FC = () => {
-  const dispatch = useDispatch();
-  
+  const dispatch = useAppDispatch();
+
   // Accessing state
   const { user, loading, error } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-   
     if (!user) {
       dispatch(fetchUser());
     }
-  }, [dispatch, user]); // Add user to the dependency array
-
-  // Debugging logs
-  console.log('User:', user);
-  console.log('Loading:', loading);
-  console.log('Error:', error);
+  }, [dispatch, user]);
 
   // Render loading state
   if (loading) return <p>Loading...</p>;
   
   // Render error state
-  if (error) return <p>Error: {error}</p>;
+  if (error) return <p>Error: {typeof error === 'string' ? error : (error as { message?: string }).message || "An unexpected error occurred"}</p>;
 
   // Render user profile
   return (
@@ -35,7 +29,7 @@ const UserProfile: React.FC = () => {
       <p>Email: {user?.email || 'N/A'}</p>
       <p>Phone Number: {user?.phoneNumber || 'N/A'}</p>
       <h3>Tasks:</h3>
-      {user.tasks && user.tasks.length > 0 ? (
+      {user?.tasks && user.tasks.length > 0 ? (
         <ul>
           {user.tasks.map((task) => (
             <li key={task.id}>

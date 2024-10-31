@@ -1,10 +1,10 @@
-import React from 'react';
+
 import { Routes, Route } from 'react-router-dom';
 import Home from '../pages/Home';
 import Footer from '../components/Footer';
 import Signup from '../pages/Signup';
 import Login from '../pages/Login';
-import Dashboard from '../components/Dashboard';
+
 import PrivateRoute from '../components/PrivateRoute';
 import PostTask from '../Layout/PostTask';
 import UserProfile from '../components/UserProfile';

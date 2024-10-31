@@ -55,10 +55,10 @@ const PostTask: React.FC = () => {
     if (step > 1) setStep(step - 1);
   };
 
- const handlePostTask = async () => {
-  // Validation
+  const handlePostTask = async () => {
   if (!formData.title || !formData.description || !formData.location || !formData.budget || !formData.date) {
     setErrorMessage('All fields are required. Please complete the form.');
+    console.log("Form incomplete:", formData);
     return;
   }
 
@@ -72,14 +72,17 @@ const PostTask: React.FC = () => {
     taskData.append('image', formData.image);
   }
 
+  console.log("Sending task data:", Object.fromEntries(taskData.entries()));
+
   try {
     const result = await dispatch(postTask(taskData)).unwrap();
+    console.log("Task post result:", result);
     if (result) {
-      setStep(5); 
+      setStep(5);
     }
   } catch (error) {
     setErrorMessage('Failed to post task. Please try again later.');
-    console.error('Error in postTask:', error); 
+    console.error('Error in postTask:', error);
   }
 };
 

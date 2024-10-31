@@ -1,33 +1,48 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectAuth } from '../features/auth/authSlice';
-import { fetchTasks, selectTasks } from '../features/tasks/tasksSlice';
-import { RootState } from '../app/store';
+import { fetchTasks, selectTasks, selectLoading, selectError } from '../features/tasks/tasksSlice';
+import { RootState, useAppDispatch } from '../app/store';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import Header from './Header';
 
 const Dashboard: React.FC = () => {
-  const dispatch = useDispatch();
-  const { tasks = [], loading, error } = useSelector((state: RootState) => selectTasks(state) || {});
+  const dispatch = useAppDispatch();
+  const tasks = useSelector(selectTasks);
+  const loading = useSelector(selectLoading);
+  const error = useSelector(selectError);
   const { user } = useSelector((state: RootState) => selectAuth(state) || {});
+
   const [currentDate, setCurrentDate] = useState<string>("");
   const [filter, setFilter] = useState({ title: '', status: 'All' });
 
   useEffect(() => {
     if (user?.id) {
+      console.log("Fetching tasks for user:", user.id);
       dispatch(fetchTasks(user.id));
+    } else {
+      console.log("User is not logged in or ID is missing.");
     }
 
     const now = new Date();
-    setCurrentDate(now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }));
+    setCurrentDate(now.toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    }));
   }, [dispatch, user]);
 
+  if (loading) {
+    return <div>Loading tasks...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading tasks: {error}</div>;
+  }
+
   const filteredTasks = tasks.filter(task => {
-    return (
-      (filter.status === 'All' || task.status === filter.status) &&
-      (task.title.toLowerCase().includes(filter.title.toLowerCase()))
-    );
+    const matchesStatus = filter.status === 'All' || task.status === filter.status;
+    const matchesTitle = task.title.toLowerCase().includes(filter.title.toLowerCase());
+    return matchesStatus && matchesTitle;
   });
 
   const chartData = {
@@ -52,7 +67,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-6">
-      <Header/>
+      <Header />
       <h1 className="text-xl font-semibold">{currentDate}</h1>
       <h1 className="text-2xl font-bold">
         Good morning, {user?.firstName} {user?.lastName} 👤 🌞
@@ -60,20 +75,21 @@ const Dashboard: React.FC = () => {
 
       {/* Task Stats and Chart */}
       <div className="flex gap-4 my-4 h-32">
-        <div className="p-4 bg-white shadow-md h rounded flex flex-col items-center text-center">
+        {/* Task Statistics */}
+        <div className="p-4 bg-white shadow-md rounded flex flex-col items-center text-center">
           <div className="text-blue-500 text-2xl">🔧</div>
           <div className="text-lg font-semibold">Active Tasks</div>
-          <div>{tasks?.filter(task => task.status !== 'Completed').length || 0}</div>
+          <div>{tasks.filter(task => task.status !== 'Completed').length}</div>
         </div>
         <div className="p-4 bg-white shadow-md rounded flex flex-col items-center text-center">
           <div className="text-blue-500 text-2xl">🕒</div>
           <div className="text-lg font-semibold">Pending Requests</div>
-          <div>{tasks?.filter(task => task.status === 'Pending').length || 0}</div>
+          <div>{tasks.filter(task => task.status === 'Pending').length}</div>
         </div>
         <div className="p-4 bg-white shadow-md rounded flex flex-col items-center text-center">
           <div className="text-blue-500 text-2xl">✅</div>
           <div className="text-lg font-semibold">Completed Tasks</div>
-          <div>{tasks?.filter(task => task.status === 'Completed').length || 0}</div>
+          <div>{tasks.filter(task => task.status === 'Completed').length}</div>
         </div>
         <div className="p-4 bg-white shadow-md rounded flex flex-col items-center text-center">
           <div className="text-blue-500 text-2xl">⭐</div>
@@ -92,7 +108,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Section (Now below the chart) */}
+      {/* Filter Section */}
       <div className="flex gap-4 my-4 mt-64">
         <input
           type="text"
@@ -118,7 +134,6 @@ const Dashboard: React.FC = () => {
         <thead>
           <tr>
             <th className="p-2">Task Title</th>
-            <th className="p-2">Category</th>
             <th className="p-2">Budget</th>
             <th className="p-2">Status</th>
             <th className="p-2">Action</th>
@@ -128,7 +143,6 @@ const Dashboard: React.FC = () => {
           {filteredTasks.map(task => (
             <tr key={task.id}>
               <td className="p-2">{task.title}</td>
-              <td className="p-2">{task.category}</td>
               <td className="p-2">{task.budget}</td>
               <td className={`p-2 ${task.status === 'Completed' ? 'text-green-500' : 'text-yellow-500'}`}>
                 {task.status}

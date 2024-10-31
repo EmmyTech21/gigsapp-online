@@ -1,6 +1,9 @@
-// Import necessary modules
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { useDispatch } from 'react-redux';
+
 import axios from 'axios';
+import { RootState, AppDispatch } from '../../app/store';
+// import { ThunkDispatch } from 'redux-thunk';
 
 // Define interfaces for Task and User
 interface Task {
@@ -16,7 +19,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  phoneNumber?: string; // Added phoneNumber to User interface
+  phoneNumber?: string;
   tasks?: Task[];
 }
 
@@ -25,7 +28,7 @@ interface AuthState {
   user: User | null;
   token: string | null;
   loading: boolean;
-  error: string | null;
+  error: string | { message: string } | null;
 }
 
 // Initial state
@@ -36,59 +39,55 @@ const initialState: AuthState = {
   error: null,
 };
 
+// Custom hook for dispatch with correct type
+export const useAppDispatch = () => useDispatch<AppDispatch>();
+
 // Fetch user profile
-export const fetchUser = createAsyncThunk<User, void, { state: { auth: AuthState } }>(
+export const fetchUser = createAsyncThunk<User, void, { state: RootState; rejectValue: string }>(
   'auth/fetchUser',
   async (_, thunkAPI) => {
-    const state = thunkAPI.getState().auth;
-    const token = state.token;
+    const token = thunkAPI.getState().auth.token;
 
     if (!token) {
       return thunkAPI.rejectWithValue("No token found");
     }
 
     try {
-      const response = await axios.get('http://localhost:3000/api/auth/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await axios.get('https://gigsapp-backend.vercel.app/api/auth/profile', {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(response)
-      return response.data; 
-    } catch (error) {
-      console.error("Fetch user error:", error.response?.data || error.message);
+      return response.data;
+    } catch (error: any) {
       return thunkAPI.rejectWithValue(error.response?.data?.error || "Server error");
     }
   }
 );
 
 // Signup thunk
-export const signup = createAsyncThunk<{ user: User; token: string }, any>(
+export const signup = createAsyncThunk<{ user: User; token: string }, Record<string, any>, { rejectValue: string }>(
   'auth/register',
   async (formData, thunkAPI) => {
     try {
-      const response = await axios.post('http://localhost:3000/api/auth/register', formData);
+      const response = await axios.post('https://gigsapp-backend.vercel.app/api/auth/register', formData);
       return response.data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.response?.data || "Signup error");
     }
   }
 );
 
 // Login thunk
-export const login = createAsyncThunk<{ user: User; token: string }, any>(
+export const login = createAsyncThunk<{ user: User; token: string }, Record<string, any>, { rejectValue: string }>(
   'auth/login',
   async (formData, thunkAPI) => {
     try {
-      const response = await axios.post('http://localhost:3000/api/auth/login', formData);
-      const userData = response.data; // Assuming the response contains user and token
+      const response = await axios.post('https://gigsapp-backend.vercel.app/api/auth/login', formData);
+      const userData = response.data;
 
-      // Fetch user profile after login
-      await thunkAPI.dispatch(fetchUser());
-      
-      return userData; // Return userData to update the state
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data);
+      await thunkAPI.dispatch(fetchUser() as any); // Type assertion to avoid type mismatch
+      return userData;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.response?.data || "Login error");
     }
   }
 );
@@ -119,7 +118,7 @@ const authSlice = createSlice({
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload || "Signup failed";
       })
       .addCase(login.pending, (state) => {
         state.loading = true;
@@ -134,7 +133,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload || "Login failed";
       })
       .addCase(fetchUser.pending, (state) => {
         state.loading = true;
@@ -146,14 +145,18 @@ const authSlice = createSlice({
       })
       .addCase(fetchUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload || "Failed to fetch user";
       });
   },
 });
 
-// Export actions and reducer
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;
 
-// Selector
+
+// Export actions and reducer
+// export const { logout } = authSlice.actions;
+// export default authSlice.reducer;
+
+// Selector for auth state
 export const selectAuth = (state: RootState) => state.auth;

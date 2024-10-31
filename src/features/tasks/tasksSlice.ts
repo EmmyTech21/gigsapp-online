@@ -1,8 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-axios.defaults.baseURL = 'http://localhost:3000/api'; 
+// Set the base URL for axios
+axios.defaults.baseURL = 'https://gigsapp-backend.vercel.app/api';
 
+// Define the Task interface
 interface Task {
   id: string;
   title: string;
@@ -10,12 +12,12 @@ interface Task {
   location: string;
   budget: string;
   date: string;
-  status: 'Completed' | 'Pending';
+  status: 'Completed' | 'Pending' | 'Live'; // Include 'Live' if necessary
   bids: number;
-  image?: string;  
+  image?: string;
 }
 
-
+// Define the initial state structure
 interface TasksState {
   tasks: Task[];
   loading: boolean;
@@ -23,6 +25,7 @@ interface TasksState {
   searchResults: Task[];
 }
 
+// Initialize the state
 const initialState: TasksState = {
   tasks: [],
   loading: false,
@@ -31,96 +34,80 @@ const initialState: TasksState = {
 };
 
 // Fetch tasks for logged-in user
-export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async (_, thunkAPI) => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('User is not authenticated');
+export const fetchTasks = createAsyncThunk<Task[], string | undefined, { rejectValue: string }>(
+  'tasks/fetchTasks',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`/tasks/tasks`, {
+         
+        headers: { Authorization: `Bearer ${token}` },
+       
+        params: { userId } // Use userId in the query
+      });
+       console.log(response.data.tasks)
+      return response.data.tasks;
+      
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || "Failed to fetch tasks");
     }
-
-    const response = await axios.get('/tasks/tasks', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data.tasks;
-  } catch (error: any) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to fetch tasks');
   }
-});
+);
 
-interface PostTaskData {
-  title: string;
-  description: string;
-  location: string;
-  budget: string;
-  date: string;
-  image?: string;  
-}
+// Post a new task
+export const postTask = createAsyncThunk<Task, FormData, { rejectValue: string }>(
+  'tasks/postTask',
+  async (taskData, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('User is not authenticated');
 
-
-
-export const postTask = createAsyncThunk('tasks/postTask', async (taskData: PostTaskData, thunkAPI) => {
-  try {
-    const token = localStorage.getItem('token');
-    console.log("Token:", token); 
-
-    if (!taskData.title || !taskData.description || !taskData.location || !taskData.budget || !taskData.date) {
-      return thunkAPI.rejectWithValue('All fields are required');
+      const response = await axios.post('/tasks/tasks', taskData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data.task;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to post task');
     }
+  }
+);
 
-    // Prepare FormData
-    const formData = new FormData();
-    formData.append('title', taskData.title);
-    formData.append('description', taskData.description);
-    formData.append('location', taskData.location);
-    formData.append('budget', taskData.budget);
-    formData.append('date', taskData.date);
-
-    // Check if an image file is provided
-    if (taskData.image) {
-      formData.append('image', taskData.image);  // `taskData.image` should be a File object
+// Search for tasks
+export const searchTasks = createAsyncThunk<Task[], string, { rejectValue: string }>(
+  'tasks/searchTasks',
+  async (query, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`/tasks/search`, { params: { query } });
+      return response.data.tasks;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Search failed');
     }
-
-    const response = await axios.post('/tasks/tasks', formData, {
-    headers: { 
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'multipart/form-data'  
   }
-});
-return response.data.task;  
-  } catch (error: any) {
-    console.error("Error posting task:", error); // This logs the error for debugging
-    return thunkAPI.rejectWithValue(error.response?.data?.error || 'Failed to post task');
-  }
-});
-
-// Search tasks by title
-export const searchTasks = createAsyncThunk('tasks/searchTasks', async (query: string, thunkAPI) => {
-  try {
-    const response = await axios.get(`/tasks/search?query=${query}`);
-    return response.data.tasks;
-  } catch (error: any) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Search failed');
-  }
-});
+);
 
 // Add a bid to a task
-export const addBid = createAsyncThunk('tasks/addBid', async ({ taskId }: { taskId: string }, thunkAPI) => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return thunkAPI.rejectWithValue('User is not authenticated');
+export const addBid = createAsyncThunk<Task, { taskId: string }, { rejectValue: string }>(
+  'tasks/addBid',
+  async ({ taskId }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return rejectWithValue('User is not authenticated');
+
+      const response = await axios.post(`/task/${taskId}/bid`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data.task;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to add bid');
     }
-
-    const response = await axios.post(`/tasks/task/${taskId}/bid`, null, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data.task;
-  } catch (error: any) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to add bid');
   }
-});
+);
 
-const tasksSlice = createSlice({
+// Create the tasks slice
+export const tasksSlice = createSlice({
   name: 'tasks',
   initialState,
   reducers: {},
@@ -142,16 +129,17 @@ const tasksSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-     .addCase(postTask.fulfilled, (state, action) => {
-  state.loading = false;
-  state.tasks.push(action.payload); // Make sure action.payload is a task object
-})
+      .addCase(postTask.fulfilled, (state, action) => {
+        state.loading = false;
+        state.tasks.push(action.payload);
+      })
       .addCase(postTask.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
       .addCase(searchTasks.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(searchTasks.fulfilled, (state, action) => {
         state.loading = false;
@@ -178,9 +166,11 @@ const tasksSlice = createSlice({
   },
 });
 
+// Export the reducer
 export default tasksSlice.reducer;
 
 // Selectors
+
 export const selectTasks = (state: { tasks: TasksState }) => state.tasks.tasks;
 export const selectSearchResults = (state: { tasks: TasksState }) => state.tasks.searchResults;
 export const selectLoading = (state: { tasks: TasksState }) => state.tasks.loading;

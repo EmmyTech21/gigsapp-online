@@ -22,14 +22,16 @@ const Signup = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  console.log(formData); // Add this to check formData contents
-  if (!loading && formData.password === formData.confirmPassword) {
-    dispatch(signup(formData)); // Dispatch the signup action
-  }
-};
-
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loading && formData.password === formData.confirmPassword) {
+      dispatch(signup(formData))
+        .unwrap()
+        .catch((error: any) => {
+          alert('Signup error: ' + (error.message || 'Unexpected error'));
+        });
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -114,12 +116,11 @@ const handleSubmit = (e: React.FormEvent) => {
             />
           </div>
 
-         {error && (
-  <p className="text-red-500 text-sm mb-4">
-    {typeof error === 'object' ? error.message : error}
-  </p>
-)}
-
+          {error && (
+            <p className="text-red-500 text-sm mb-4">
+              {typeof error === 'string' ? error : error?.message || "An unexpected error occurred"}
+            </p>
+          )}
 
           <button
             type="submit"

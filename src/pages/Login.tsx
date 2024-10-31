@@ -1,27 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { login } from '../features/auth/authSlice'; // Import login from authSlice
+import { useAppDispatch } from '../features/auth/authSlice';
+import { login } from '../features/auth/authSlice';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const userData = { email, password };
-    
-    // Dispatch login action
+
     dispatch(login(userData))
       .unwrap()
       .then(() => {
-        navigate('/dashboard'); // Redirect after successful login
+        navigate('/dashboard');
       })
-      .catch((error) => {
-        alert('Login failed: ' + error.message);
+      .catch((error: string) => {
+        alert('Login failed: ' + error);
       });
   };
 

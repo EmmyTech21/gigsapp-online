@@ -1,11 +1,12 @@
+// src/components/Header.tsx
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../app/store';
 import { FaUser, FaEnvelope, FaBell } from 'react-icons/fa';
 import { searchTasks, selectSearchResults, addBid } from '../features/tasks/tasksSlice';
 
 const Header: React.FC = () => {
-  const dispatch = useDispatch();
-  const searchResults = useSelector(selectSearchResults);
+  const dispatch = useAppDispatch();
+  const searchResults = useAppSelector(selectSearchResults);
   const [query, setQuery] = useState('');
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -15,8 +16,8 @@ const Header: React.FC = () => {
     }
   };
 
-  const handleBid = (taskId: number) => {
-    dispatch(addBid({ taskId, userId: 'currentUserId' }));
+  const handleBid = (taskId: string) => {
+    dispatch(addBid({ taskId }));
   };
 
   return (
@@ -44,7 +45,7 @@ const Header: React.FC = () => {
               <div key={task.id} className="p-4 border-b flex justify-between items-center">
                 <div>
                   <h4 className="font-semibold">{task.title}</h4>
-                  <p className="text-sm text-gray-500">{task.category} - ${task.budget}</p>
+                  <p className="text-sm text-gray-500">{task.description} - ${task.budget}</p>
                 </div>
                 <button
                   onClick={() => handleBid(task.id)}
