@@ -1,5 +1,4 @@
 {
-  "version": 2,
   "builds": [
     {
       "src": "package.json",
@@ -8,16 +7,7 @@
     }
   ],
   "routes": [
-    {
-      "src": "/",
-      "status": 308,
-      "headers": {
-        "Location": "/home"
-      }
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/index.html"
-    }
+    { "src": "/", "status": 308, "headers": { "Location": "/home" } },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
