@@ -1,6 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { FaLinkedin, FaFacebookF, FaTwitter, FaInstagram, FaYoutube } from "react-icons/fa"; // Import the necessary icons
+import logo from '../images/GiGs_Logo-without back ground 1@2x.png';
 
 const Footer = () => {
   return (
@@ -67,7 +68,7 @@ const Footer = () => {
       {/* Tablet and Mobile view */}
       <div className="md:hidden flex flex-col items-center p-6 text-sm space-y-4">
         {/* Logo */}
-        <img src="/path-to-logo.png" alt="Logo" className="h-10" />
+        <img src={logo} alt="Logo" className="h-10" />
         {/* Links */}
         <div className="flex flex-col space-y-4 text-center">
           {/* Legal Links */}

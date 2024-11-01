@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../features/auth/authSlice';
 import { login } from '../features/auth/authSlice';
 
@@ -49,7 +49,7 @@ const Login = () => {
         </button>
         <div className="text-center mt-4">
           <p>
-            Don't Have An Account? <a href="/signup" className="text-blue-500">Sign Up</a>
+            Don't Have An Account? <Link to="/sign-up" className="text-blue-500">Sign Up</Link>
           </p>
         </div>
       </form>

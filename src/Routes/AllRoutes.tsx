@@ -14,7 +14,7 @@ const AllRoutes = () => {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/home" element={<Home />} />
+      <Route path="/"  element={<Home />} />
       <Route path="/sign-up" element={<Signup />} />
       <Route path="/login" element={<Login />} />
       <Route path="/footer" element={<Footer />} />

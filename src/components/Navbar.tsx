@@ -21,12 +21,12 @@ const Navbar: React.FC = () => {
         <img src={logo} alt="Gigs Logo" className="w-20 h-16" />
 
       
-                 <nav className="lg:flex justify-around space-x-20 text-xl p-5 md:hidden sm:hidden ">
+                 <nav className="lg:flex justify-around space-x-20  p-5 md:hidden sm:hidden ">
   <Link to="/services" className="text-gray-600
-   bg-[#f8ffdd] hover:text-gray-900 p-4 rounded-full  shadow-lg shadow-sky-400">Our Services</Link>
-  <Link to="/about" className="text-gray-600 bg-[#f8ffdd] p-4 rounded-full shadow-lg shadow-sky-400 hover:text-gray-900">About Us</Link>
-  <Link to="/contact" className="text-gray-600 bg-[#f8ffdd] p-4 rounded-full hover:text-gray-900 shadow-lg shadow-sky-400">Contact Us</Link>
-  <Link to="/sign-up" className="text-gray-600 bg-[#f8ffdd] p-4 rounded-full  hover:text-gray-900 shadow-lg shadow-sky-400">Sign/Sign-up</Link>
+   bg-[#f8ffdd] hover:text-gray-900 p-3 rounded-full  shadow-lg shadow-sky-400">Our Services</Link>
+  <Link to="/about" className="text-gray-600 bg-[#f8ffdd] p-3 rounded-full shadow-lg shadow-sky-400 hover:text-gray-900">About Us</Link>
+  <Link to="/contact" className="text-gray-600 bg-[#f8ffdd] p-3 rounded-full hover:text-gray-900 shadow-lg shadow-sky-400">Contact Us</Link>
+  <Link to="/sign-up" className="text-gray-600 bg-[#f8ffdd] p-3 rounded-full  hover:text-gray-900 shadow-lg shadow-sky-400">Sign/Sign-up</Link>
 
 </nav>
 
