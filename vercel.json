@@ -7,7 +7,9 @@
     }
   ],
   "routes": [
-    { "src": "/", "status": 308, "headers": { "Location": "/home" } },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
