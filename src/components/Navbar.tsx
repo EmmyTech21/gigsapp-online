@@ -2,6 +2,8 @@ import { useState } from 'react';
 import {  FaBars } from 'react-icons/fa';
 import logo from '../images/GiGs_Logo-without back ground 1@2x.png';
 import { Link } from 'react-router-dom';
+
+
 const Navbar: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
@@ -21,7 +23,7 @@ const Navbar: React.FC = () => {
         <img src={logo} alt="Gigs Logo" className="w-20 h-16" />
 
       
-                 <nav className="lg:flex justify-around space-x-20  p-5 md:hidden sm:hidden ">
+    <nav className="lg:flex justify-around space-x-20  p-5 md:hidden sm:hidden ">
   <Link to="/services" className="text-gray-600
    bg-[#f8ffdd] hover:text-gray-900 p-3 rounded-full  shadow-lg shadow-sky-400">Our Services</Link>
   <Link to="/about" className="text-gray-600 bg-[#f8ffdd] p-3 rounded-full shadow-lg shadow-sky-400 hover:text-gray-900">About Us</Link>
@@ -59,18 +61,18 @@ const Navbar: React.FC = () => {
             className="border px-4 py-2 w-full mb-4"
           />
           <nav className="space-y-4">
-            <a href="#" className="block text-gray-700 hover:text-blue-500">
+            <Link to="/sign-up" className="block text-gray-700 hover:text-blue-500">
               Sign Up / Log In
-            </a>
-            <a href="#" className="block text-gray-700 hover:text-blue-500">
+            </Link>
+            <Link to="#" className="block text-gray-700 hover:text-blue-500">
               Our Services
-            </a>
-            <a href="#" className="block text-gray-700 hover:text-blue-500">
+            </Link>
+            <Link to="#" className="block text-gray-700 hover:text-blue-500">
               About Us
-            </a>
-            <a href="#" className="block text-gray-700 hover:text-blue-500">
+            </Link>
+            <Link to="#" className="block text-gray-700 hover:text-blue-500">
               Contact Us
-            </a>
+            </Link>
           </nav>
           <div className="mt-4 text-center">
             <p>&copy; 2024 Gigs. All Rights Reserved</p>

@@ -27,8 +27,8 @@ const tasks = [
 const TasksNearYou: React.FC = () => {
   return (
     <div className="container mx-auto px-4">
-      <h1 className="text-5xl font-bold my-20">Tasks Near You</h1>
-      <div className="space-y-4">
+      <h1 className="text-4xl font-bold my-10">Tasks Near You</h1>
+      <div className="space-y-4 text-3xl">
         {tasks.map((task, index) => (
           <TaskCard
             key={index}

@@ -123,7 +123,7 @@ export const tasksSlice = createSlice({
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload as string ?? 'Failed to fetch tasks';
       })
       .addCase(postTask.pending, (state) => {
         state.loading = true;
@@ -135,7 +135,7 @@ export const tasksSlice = createSlice({
       })
       .addCase(postTask.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload as string ?? 'Failed to post task';
       })
       .addCase(searchTasks.pending, (state) => {
         state.loading = true;
@@ -143,7 +143,7 @@ export const tasksSlice = createSlice({
       })
       .addCase(searchTasks.fulfilled, (state, action) => {
         state.loading = false;
-        state.searchResults = action.payload;
+        state.searchResults = action.payload ?? 'Search failed';
       })
       .addCase(searchTasks.rejected, (state, action) => {
         state.loading = false;
@@ -161,7 +161,7 @@ export const tasksSlice = createSlice({
       })
       .addCase(addBid.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload as string ?? 'Failed to add bid';
       });
   },
 });

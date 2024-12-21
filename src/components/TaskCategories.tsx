@@ -5,7 +5,6 @@ const categories = [
   { name: 'Home Repairs', icon: '🛋' },
   { name: 'Painting', icon: '🖌' },
   // { name: 'Personal errands', icon: '📃' },
-
 ];
 
 const Navbar = () => {

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { ClipLoader } from 'react-spinners';
 import { selectAuth } from '../features/auth/authSlice';
 import { fetchTasks, selectTasks, selectLoading, selectError } from '../features/tasks/tasksSlice';
 import { RootState, useAppDispatch } from '../app/store';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import Header from './Header';
+import TaskDetails from './TaskDetails';
 
 const Dashboard: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -13,6 +15,7 @@ const Dashboard: React.FC = () => {
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
   const { user } = useSelector((state: RootState) => selectAuth(state) || {});
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const [currentDate, setCurrentDate] = useState<string>("");
   const [filter, setFilter] = useState({ title: '', status: 'All' });
@@ -31,8 +34,23 @@ const Dashboard: React.FC = () => {
     }));
   }, [dispatch, user]);
 
+  const handleViewTask = (task: any) => {
+    if (task) {
+      setSelectedTask(task);
+    }
+  };
+
+  const closeTaskDetails = () => {
+    setSelectedTask(null);
+  };
+
   if (loading) {
-    return <div>Loading tasks...</div>;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-100">
+        <ClipLoader size={50} color={"#3498db"} loading={true} />
+        <p className="ml-4">Loading tasks...</p>
+      </div>
+    );
   }
 
   if (error) {
@@ -148,12 +166,15 @@ const Dashboard: React.FC = () => {
                 {task.status}
               </td>
               <td className="p-2">
-                <button className="px-2 py-1 bg-blue-500 text-white rounded">View</button>
+                <button className="px-2 py-1 bg-blue-500 text-white rounded" onClick={() => handleViewTask(task)}>View</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Task Details Modal */}
+      {selectedTask && <TaskDetails task={selectedTask} onClose={closeTaskDetails} />}
     </div>
   );
 };

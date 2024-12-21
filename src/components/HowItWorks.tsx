@@ -14,10 +14,10 @@ const HowItWorks: React.FC  = () => {
   <span className='bg-[#b2fbff] p-4 rounded-full mr-2  text-2xl'>1</span><strong>Post Your Task:</strong> Simply tell us what you need, and we’ll help you find the right person nearby.
           </p>
           <p className="mb-6">
-            <span className='bg-[#ffeb50] p-4 mr-2 rounded-full'>1</span><strong>Find Your Helper:</strong> We’ll connect you with trusted helpers who can get your job done.
+            <span className='bg-[#ffeb50] p-4 mr-2 rounded-full'>2</span><strong>Find Your Helper:</strong> We’ll connect you with trusted helpers who can get your job done.
           </p>
           <p>
-             <span className='bg-[#b2fbff] p-4 mr-2  rounded-full'>1</span> <strong>Pay with Ease:</strong> Negotiate, track their progress, and pay securely when you’re satisfied.
+             <span className='bg-[#b2fbff] p-4 mr-2  rounded-full'>3</span> <strong>Pay with Ease:</strong> Negotiate, track their progress, and pay securely when you’re satisfied.
           </p>
         </div>
       </div>

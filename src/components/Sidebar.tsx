@@ -16,7 +16,7 @@ const Sidebar: React.FC = () => {
       <nav>
         <ul className="space-y-6">
           <li>
-            <Link to="/" className="flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link to="/dashboard" className="flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               <FaHome className="mr-3" />
               Dashboard
             </Link>
